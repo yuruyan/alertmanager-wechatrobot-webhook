@@ -2,6 +2,20 @@
 
 Convert alertmanger webhook messages to qiye WeChat robots that can receive messages
 
+## build
+
+Windows:
+
+```
+go build -ldflags="-w -s" -o alertmanager-wechatrobot-webhook.exe
+```
+
+Linux:
+
+```
+go build -ldflags="-w -s" -o alertmanager-wechatrobot-webhook
+```
+
 ## How use
 
 ```
@@ -20,8 +34,8 @@ alertmanager.yml
 
 ```
 receivers:
-- name: webhook-test                                                                                                           
-  webhook_configs:                                                                                                             
+- name: webhook-test
+  webhook_configs:
   - url: 'http://127.0.0.1:8999/webhook?key=xxxxxx-xxxxx-xxxxx-xxxxxx-xxxxxxx'
 ```
 
@@ -131,7 +145,7 @@ curl 'http://127.0.0.1:8999/webhook?key=xxxxxx-xxxxx-xxxxx-xxxxxx-xxxxxxx'  -H '
   }'
 ```
 
-### 3、使用alert内容指定微信机器人发送消息
+### 3、使用 alert 内容指定微信机器人发送消息
 
 ```
   curl 'http://127.0.0.1:8999/webhook'  -H 'Content-Type: application/json'    -d '
