@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 1m
+route:
+  group_by: ['alertname']
+  group_wait: 1s
+  group_interval: 20m
+  repeat_interval: 6h
+  receiver: 'webhook'
+templates:
+  - '*.tmpl'
+receivers:
+  - name: 'webhook'
+    webhook_configs:
+      - url: 'http://124.70.148.224:8888/webhook?key=???????'
+        send_resolved: true
