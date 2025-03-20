@@ -30,40 +30,57 @@ go run alertmanager-wechatbot-webhook.go  --RobotKey="xxxxxx-xxxxx-xxxxx-xxxxxx-
 
 ## configure
 
+prometheus.yml
+
+```yaml
+- job_name: "MySQL"
+  static_configs:
+    - targets: ["172.16.110.100:9104"]
+      labels:
+        node_name: "test-mariadb"
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: ip
+      separator: ":"
+      regex: "(.*):.*"
+      replacement: "${1}"
+```
+
 alertmanager.yml
 
-```
+```yaml
 receivers:
-- name: webhook-test
-  webhook_configs:
-  - url: 'http://127.0.0.1:8999/webhook?key=xxxxxx-xxxxx-xxxxx-xxxxxx-xxxxxxx'
+  - name: webhook-test
+    webhook_configs:
+      - url: "http://127.0.0.1:8999/webhook?key=xxxxxx-xxxxx-xxxxx-xxxxxx-xxxxxxx"
 ```
 
 prometheus rules configure
 
-```
+```yaml
 groups:
-- name: ansible managed alert rules
-  rules:
-  - alert: CriticalCPULoad
-    expr: (100 * (1 - avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) BY (instance)))
-      > 96
-    for: 2m
-    labels:
-      severity: critical
-    annotations:
-      description: '{{ $labels.instance }} of mountpoint {{ $labels.mountpoint }} has
-        Critical CPU load for more than 2 minutes.'
-      summary: Instance {{ $labels.instance }} - Critical CPU load
-      wechatRobot: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxxxxxx-xxxxxxxx-xxxxx-xxxxxx"
-
+  - name: ansible managed alert rules
+    rules:
+      - alert: CriticalCPULoad
+        expr:
+          (100 * (1 - avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) BY (instance)))
+          > 96
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          description:
+            "{{ $labels.instance }} of mountpoint {{ $labels.mountpoint }} has
+            Critical CPU load for more than 2 minutes."
+          summary: Instance {{ $labels.instance }} - Critical CPU load
+          wechatRobot: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxxxxxxx-xxxxxxxx-xxxxx-xxxxxx"
 ```
 
 ## test
 
 ### 1、使用默认微信机器人发送消息
 
-```
+```bash
 curl 'http://127.0.0.1:8999/webhook'  -H 'Content-Type: application/json'    -d '
   {
     "receiver": "webhook-test",
@@ -105,7 +122,7 @@ curl 'http://127.0.0.1:8999/webhook'  -H 'Content-Type: application/json'    -d 
 
 ### 2、使用指定微信机器人发送消息
 
-```
+```bash
 curl 'http://127.0.0.1:8999/webhook?key=xxxxxx-xxxxx-xxxxx-xxxxxx-xxxxxxx'  -H 'Content-Type: application/json'    -d '
   {
     "receiver": "webhook-test",
@@ -147,7 +164,7 @@ curl 'http://127.0.0.1:8999/webhook?key=xxxxxx-xxxxx-xxxxx-xxxxxx-xxxxxxx'  -H '
 
 ### 3、使用 alert 内容指定微信机器人发送消息
 
-```
+```bash
   curl 'http://127.0.0.1:8999/webhook'  -H 'Content-Type: application/json'    -d '
   {
     "receiver": "webhook-test",
