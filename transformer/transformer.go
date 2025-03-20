@@ -3,7 +3,6 @@ package transformer
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/k8stech/alertmanager-wechatrobot-webhook/model"
@@ -42,7 +41,7 @@ func TransformToMarkdown(notification model.Notification, grafanaURL string, ale
 		// 将 UTC 时间转换为 CST 时间
 		cstTime := alert.StartsAt.In(cstZone)
 		// instance := labels["instance"]
-		hostName := labels["node-name"]
+		hostName := labels["node_name"]
 		ip := labels["ip"]
 		// // 获取告警等级
 		// severity := labels["severity"]
@@ -54,16 +53,25 @@ func TransformToMarkdown(notification model.Notification, grafanaURL string, ale
 			buffer.WriteString(fmt.Sprintf("### 【监控告警】主机: <font color='%s'> %s </font>\n", alertColor, hostName))
 		}
 		buffer.WriteString(fmt.Sprintf(">主机名称：**<font color=\"comment\">%s</font>**\n", hostName))
-		buffer.WriteString(fmt.Sprintf(">IP地址  ：<font color=\"%s\">%s</font>\n", alertColor, ip))
+		buffer.WriteString(fmt.Sprintf(">IP地址   ：<font color=\"%s\">%s</font>\n", alertColor, ip))
 		buffer.WriteString(fmt.Sprintf(">告警时间：<font color=\"comment\">%s</font>\n", cstTime.Format("2006-01-02 15:04:05")))
 		if status == "resolved" {
-			elapsed := time.Since(alert.StartsAt).String()
-			elapsed = strings.ReplaceAll(elapsed, "h", "h ")
-			elapsed = strings.ReplaceAll(elapsed, "m", "m ")
+			d := time.Since(alert.StartsAt)
+			hours := int(d.Hours())
+			minutes := int(d.Minutes()) % 60
+			seconds := int(d.Seconds()) % 60
+			elapsed := ""
+			if hours > 0 {
+				elapsed = fmt.Sprintf("%dh %dm", hours, minutes)
+			} else if minutes > 0 {
+				elapsed = fmt.Sprintf("%dm %ds", minutes, seconds)
+			} else {
+				elapsed = fmt.Sprintf("%ds", seconds)
+			}
 			buffer.WriteString(fmt.Sprintf(">持续时长：<font color=\"comment\">%s</font>\n", elapsed))
 		}
 		buffer.WriteString(fmt.Sprintf(">告警名称：<font color=\"%s\">%s</font>\n", alertColor, alert.Annotations["summary"]))
-		buffer.WriteString(fmt.Sprintf(">当前状态: <font color='comment'>%s</font>\n\n", status))
+		buffer.WriteString(fmt.Sprintf(">当前状态：<font color='comment'>%s</font>\n\n", status))
 	}
 
 	markdown = &model.WeChatMarkdown{
