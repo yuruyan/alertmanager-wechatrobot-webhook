@@ -71,7 +71,8 @@ func TransformToMarkdown(notification model.Notification, grafanaURL string, ale
 			buffer.WriteString(fmt.Sprintf(">持续时长：<font color=\"comment\">%s</font>\n", elapsed))
 		}
 		buffer.WriteString(fmt.Sprintf(">告警名称：<font color=\"%s\">%s</font>\n", alertColor, alert.Annotations["summary"]))
-		buffer.WriteString(fmt.Sprintf(">当前状态：<font color='comment'>%s</font>\n\n", status))
+		buffer.WriteString(fmt.Sprintf(">详细信息：<font color=\"comment\">%s</font>\n", alert.Annotations["description"]))
+		buffer.WriteString(fmt.Sprintf(">当前状态：<font color=\"comment\">%s</font>\n\n", status))
 	}
 
 	markdown = &model.WeChatMarkdown{
